@@ -2,7 +2,7 @@
 import os, pickle, socket, sys
 
 # Internal
-from utils.logs import *
+from common.utils.logs import *
 
 # CONSTANTS
 global OBJECT_SIZE, COMMAND_SIZE
@@ -135,6 +135,6 @@ def to_nb_bytes(integer, nb):
 	try:
 		byt = integer.to_bytes(nb, 'big')
 	except OverflowError:
-		log(ERROR, "utils.sockets.to_nb_bytes: the object is too big")
+		log(ERROR, "common.utils.sockets.to_nb_bytes: the object is too big")
 		return bytes(0)
 	return byt

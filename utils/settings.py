@@ -2,7 +2,7 @@
 import json
 
 # Internal
-from utils.files import *
+from common.utils.files import *
 
 def get(name):
 	with open(to_root_path("etc/settings.cfg"), "r") as settings_file:

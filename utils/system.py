@@ -4,7 +4,7 @@ from os.path import exists
 from string import Template
 
 # Internal
-from utils.logs import *
+from common.utils.logs import *
 
 # Kill a process using the file "filename"
 # Several methods can be used:

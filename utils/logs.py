@@ -60,5 +60,5 @@ def set_log_level(log_level):
 	elif log_level=="CMD":
 		LOG_LEVEL = COMMAND
 	else:
-		print("utils.logs.set_log_level: invalid log level")
+		print("common.utils.logs.set_log_level: invalid log level")
 		sys.exit(1)

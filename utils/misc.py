@@ -2,7 +2,7 @@
 import json, os, requests, sys
 
 # Internal
-from utils.files import *
+from common.utils.files import *
 
 # Find an object in the "objects" list with field "field" equal "target"
 def find(objects, target, field):
