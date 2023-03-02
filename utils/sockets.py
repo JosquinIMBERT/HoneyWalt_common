@@ -25,13 +25,13 @@ class ProtoSocket:
 		if not self.connected():
 			log(ERROR, self.name()+".send_obj: Failed to send an object. The socket is not connected")
 		else:
-			self.socket.send(serialize(obj))
+			return self.send(serialize(obj))
 
 	# Receive an object (object size on OBJECT_SIZE bytes followed by the object on the corresponding amount of bytes)
 	def recv_obj(self, timeout=30):
 		bytlen = self.recv(size=OBJECT_SIZE, timeout=timeout)
 		if bytlen is not None:
-			bytobj = self.recv(size=int.from_bytes(bytlen, 'big'), timeout=timeout)
+			bytobj = self.recv(size=bytes_to_int(bytlen), timeout=timeout)
 			if bytobj is not None:
 				return deserialize(bytobj)
 		return None
@@ -52,7 +52,7 @@ class ProtoSocket:
 		else:
 			bytes_cmd = self.recv(size=COMMAND_SIZE)
 			if bytes_cmd:
-				return bytes_to_cmd(bytes_cmd)
+				return bytes_to_int(bytes_cmd)
 			else:
 				return None
 
@@ -64,10 +64,12 @@ class ProtoSocket:
 	#	- False if it did not succeed
 	def get_answer(self, timeout=30):
 		res = self.recv_obj(timeout=30)
-		if not res or not isinstance(res, dict) or not "success" in res: 
+		if not res: # CONNECTION TERMINATED OR KEYBOARD INTERRUPTION
+			return None
+		elif not isinstance(res, dict) or not "success" in res: # INVALID ANSWER 
 			log(ERROR, self.name()+".get_answer: received an invalid answer")
-			return False
-		else:
+			return None
+		else: # VALID ANSWER
 			# Logging warnings, errors, and fatal errors
 			if "warning" in res and isinstance(res["warning"], list):
 				for warn in res["warning"]:
@@ -91,7 +93,12 @@ class ProtoSocket:
 
 	# Send data to the socket
 	def send(self, bytes_msg):
-		return self.socket.send(bytes_msg)
+		try:
+			nb = self.socket.send(bytes_msg)
+		except:
+			return 0
+		else:
+			return nb
 
 	# Receive data on socket, with a timeout
 	def recv(self, size=2048, timeout=30):
@@ -103,12 +110,13 @@ class ProtoSocket:
 			return None
 		except KeyboardInterrupt:
 			log(INFO, self.name()+".recv: received KeyboardInterrupt")
-			import glob
-			if "SERVER" in dir(glob):
-				glob.SERVER.stop()
+			return None
+		except socket.error:
+			log(WARNING, self.name()+".recv: received a connection error")
+			return None
 		except Exception as err:
-			print(err)
-			eprint(self.name()+".recv: an unknown error occured")
+			log(FATAL, self.name()+".recv: an unknown error occured")
+			eprint(self.name()+".recv:", err)
 		else:
 			if not res:
 				log(WARNING, self.name()+".recv: Connection terminated")
@@ -128,7 +136,7 @@ def deserialize(strg):
 def cmd_to_bytes(cmd):
 	return cmd.to_bytes(COMMAND_SIZE, 'big')
 
-def bytes_to_cmd(byt):
+def bytes_to_int(byt):
 	return int.from_bytes(byt, 'big')
 
 def to_nb_bytes(integer, nb):
