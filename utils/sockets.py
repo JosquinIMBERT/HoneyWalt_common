@@ -9,6 +9,42 @@ global OBJECT_SIZE, COMMAND_SIZE
 OBJECT_SIZE = 4 # Objects size encoded on 4 bytes
 COMMAND_SIZE = 1 # Commands encoded on 1 bytes
 
+class ServerSocket(ProtoSocket):
+	def __init__(self, port):
+		self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket = None
+		self.addr = None
+		self.port = port
+
+	def __del__(self):
+		if self.socket is not None:
+			self.socket.close()
+		if self.listen_socket is not None:
+			self.listen_socket.close()
+
+	def bind(self):
+		try:
+			self.listen_socket.bind(("", self.port))
+		except:
+			log(ERROR, self.name()+".connect: failed to bind socket")
+			return False
+		self.listen_socket.listen(1)
+		return True
+
+	def accept(self):
+		try:
+			self.socket, self.addr = self.listen_socket.accept()
+		except KeyboardInterrupt:
+			log(DEBUG, self.name()+".accept: received KeyboardInterrupt")
+			return False
+		except Exception as err:
+			log(ERROR, self.name()+".accept: an error occured when waiting for a connection")
+			log(ERROR, self.name()+".accept:", err)
+			return False
+		else:
+			log(INFO, self.name()+".accept: accepted a new client")
+			return True
+
 class ProtoSocket:
 	def __init__(self):
 		self.socket = None
