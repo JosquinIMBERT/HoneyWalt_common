@@ -183,3 +183,21 @@ class ServerSocket(ProtoSocket):
 		else:
 			log(INFO, self.name()+".accept: accepted a new client")
 			return True
+
+
+class ClientSocket(ProtoSocket):
+	def __init__(self, socktype=socket.AF_INET):
+		self.socket = socket.socket(socktype, socket.SOCK_STREAM)
+
+	def __del__(self):
+		if self.socket is not None:
+			self.socket.close()
+
+	def connect(self, ip, port):
+		try:
+			self.socket.connect((ip, port))
+		except:
+			log(ERROR, self.name()+".connect: failed to connect")
+			return False
+		else:
+			return True
