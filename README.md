@@ -6,7 +6,7 @@ Common files for HoneyWalt projects
 
 This git repository contains utilities shared by different HoneyWalt projects
 
-- controller: an abstract class (ProtoController) for how a ProtoSocket controller should behave
+- controller: an abstract class (Controller) for how a ProtoSocket controller should behave
 - files: manipulate HoneyWalt files
 - logs: log messages in HoneyWalt
 - misc: Miscellaneous utilities
