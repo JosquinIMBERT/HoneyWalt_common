@@ -42,7 +42,7 @@ class ProtoSocket:
 			log(ERROR, self.name()+".send_cmd: Failed to send a command. The socket is not connected")
 			return 0
 		else:
-			return self.socket.send(cmd_to_bytes(cmd))
+			return self.send(cmd_to_bytes(cmd))
 
 	# Receive a command (should be on COMMAND_SIZE bytes)
 	def recv_cmd(self):
