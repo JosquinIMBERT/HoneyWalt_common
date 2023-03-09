@@ -170,11 +170,19 @@ class ServerSocket(ProtoSocket):
 		self.listen_socket.listen(1)
 		return True
 
-	def accept(self):
+	# Accept a new client connection
+	# Return:
+	#	- None	-> Interrupted (the server should stop)
+	#	- False	-> Reached timeout or got an other Exception (the server should keep running)
+	#	- True	-> A new connection was accepted
+	def accept(self, timeout=5):
 		try:
+			self.listen_socket.settimeout(timeout)
 			self.socket, self.addr = self.listen_socket.accept()
 		except KeyboardInterrupt:
 			log(DEBUG, self.name()+".accept: received KeyboardInterrupt")
+			return None
+		except socket.timeout:
 			return False
 		except Exception as err:
 			log(ERROR, self.name()+".accept: an error occured when waiting for a connection")
