@@ -21,30 +21,18 @@ def kill_from_file(filename, filetype="pid"):
 				os.kill(pid, signal.SIGTERM)
 	elif filetype=="ssh":
 		kill_cmd = "ssh -S "+filename+" -O exit 0.0.0.0"
-		res = subprocess.run(
-			kill_cmd,
-			"Failed to kill the ssh process",
-			shell=True,
-			check=True,
-			text=True
-		)
-		if res.returncode != 0:
-			eprint("failed to kill and ssh tunnel")
+		if not run(kill_cmd):
+			log(ERROR, "common.utils.kill_from_file: failed to kill the process")
 	else:
-		eprint("unknown file type")
+		log(WARNING, "common.utils.kill_from_file: unknown file type")
 
-def run(cmd, error, check=False, output=False, timeout=False):
+def run(cmd, output=False, timeout=False):
 	log(COMMAND, cmd)
 	res = subprocess.run(
-		cmd,
-		shell=True,
-		check=check,
-		text=True,
+		cmd, shell=True, text=True,
 		capture_output=output,
 		timeout=None if not timeout else timeout
 	)
-	if res.returncode != 0:
-		eprint(error)
 	if output:
 		return str(res.stdout)
 	else:
