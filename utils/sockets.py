@@ -222,6 +222,7 @@ class ClientSocket(ProtoSocket):
 			if ret > 0:
 				return ret
 			elif cpt<retry:
+				log(INFO, "trying to reconnect to the server")
 				self.connect(self.ip, self.port)
 			cpt += 1
 		return 0
