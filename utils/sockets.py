@@ -239,6 +239,7 @@ class ClientSocket(ProtoSocket):
 
 	# Run a complete "command (+subcommands) - data - answer" exchange on a TCLIENT+HCLIENT socket
 	def exchange(self, commands=[], data=None, timeout=30, retry=1):
+		res = None
 		trials = 0
 		reconnect = False
 		while trials <= retry:
@@ -256,8 +257,8 @@ class ClientSocket(ProtoSocket):
 					reconnect = True
 					continue
 				res = self.get_answer(timeout=timeout)
-				if res is None:
-					reconnect = True
+				if res is None: reconnect = True
+				else: break
 		return res
 
 	# Overrides the ProtoSocket send_cmd method
