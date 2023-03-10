@@ -216,12 +216,12 @@ class ClientSocket(ProtoSocket):
 	# By default, we only try to reconnect once.
 	# Set retry to 0 if you do not want to retry, n if you want to retry n times 
 	def send_cmd(self, cmd, retry=1):
-		success = False
 		cpt = 0
-		while not success and cpt<=retry:
+		while cpt<=retry:
 			ret = ProtoSocket.send_cmd(self, cmd)
 			if ret > 0:
 				return ret
-			else:
+			elif cpt<retry:
 				self.connect(self.ip, self.port)
+			cpt += 1
 		return 0
