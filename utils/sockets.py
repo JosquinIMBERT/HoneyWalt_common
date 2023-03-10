@@ -24,6 +24,7 @@ class ProtoSocket:
 	def send_obj(self, obj):
 		if not self.connected():
 			log(ERROR, self.name()+".send_obj: Failed to send an object. The socket is not connected")
+			return 0
 		else:
 			return self.send(serialize(obj))
 
@@ -192,16 +193,35 @@ class ServerSocket(ProtoSocket):
 class ClientSocket(ProtoSocket):
 	def __init__(self, socktype=socket.AF_INET):
 		self.socket = socket.socket(socktype, socket.SOCK_STREAM)
+		self.ip = None
+		self.port = None
 
 	def __del__(self):
 		if self.socket is not None:
 			self.socket.close()
 
 	def connect(self, ip, port):
+		self.ip = ip
+		self.port = port
 		try:
-			self.socket.connect((ip, port))
+			self.socket.connect((self.ip, self.port))
 		except:
 			log(ERROR, self.name()+".connect: failed to connect")
 			return False
 		else:
 			return True
+
+	# Overrides the ProtoSocket send_cmd method
+	# Tries to reconnect to the server if we fail to send the command
+	# By default, we only try to reconnect once.
+	# Set retry to 0 if you do not want to retry, n if you want to retry n times 
+	def send_cmd(self, cmd, retry=1):
+		success = False
+		cpt = 0
+		while not success and cpt<=retry:
+			ret = ProtoSocket.send_cmd(self, cmd)
+			if ret > 0:
+				return ret
+			else:
+				self.connect(self.ip, self.port)
+		return 0
