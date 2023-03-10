@@ -71,16 +71,12 @@ class ProtoSocket:
 			return None
 		else: # VALID ANSWER
 			# Logging warnings, errors, and fatal errors
-			if "warning" in res and isinstance(res["warning"], list):
-				for warn in res["warning"]:
-					log(WARNING, warn)
-			if "error" in res and isinstance(res["error"], list):
-				for error in res["error"]:
-					log(ERROR, error)
-			if "fatal" in res and isinstance(res["fatal"], list):
-				for fatal in res["fatal"]:
-					log(FATAL, fatal)
-				sys.exit(1)
+			for level in [INFO, WARNING, ERROR, FATAL]:
+				if level in res and isinstance(res[level], list):
+					for msg in res[level]:
+						log(level, msg)
+					if level == FATAL:
+						sys.exit(1)
 
 			# Checking success
 			if res["success"]:
