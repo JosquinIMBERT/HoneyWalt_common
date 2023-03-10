@@ -9,6 +9,22 @@ global OBJECT_SIZE, COMMAND_SIZE
 OBJECT_SIZE = 4 # Objects size encoded on 4 bytes
 COMMAND_SIZE = 1 # Commands encoded on 1 bytes
 
+# There are two kinds of clients / servers:
+#	- TCLIENT: Transport (Transport-level) Client
+#	- HCLIENT: HoneyWalt (Application-level) Client
+#	- TSERVER: Transport (Transport-level) Server
+#	- HSERVER: HoneyWalt (Application-level) Server
+#
+# Any combination of two of these roles is possible. In Honeywalt we have:
+#	Machine / socket 	| TCP		| HONEYWALT
+#	--------------------+-----------+-----------
+#	VM					| TCLIENT	| HSERVER
+#	Door				| TSERVER	| HSERVER
+#	Controller(-door)	| TCLIENT	| HCLIENT
+#	Controller(-VM)		| TSERVER	| HCLIENT
+#	Controller(-client)	| TSERVER	| HSERVER
+#	Client 				| TCLIENT	| HCLIENT
+
 class ProtoSocket:
 	def __init__(self):
 		self.socket = None
@@ -19,6 +35,10 @@ class ProtoSocket:
 
 	def connected(self):
 		return self.socket is not None
+
+	def close(self):
+		if self.socket is not None: self.socket.close()
+		self.socket = None
 
 	# Send an object (object size on OBJECT_SIZE bytes followed by the object on the corresponding amount of bytes)
 	def send_obj(self, obj):
@@ -104,19 +124,24 @@ class ProtoSocket:
 			res = self.socket.recv(size)
 		except socket.timeout:
 			log(WARNING, self.name()+".recv: reached timeout")
+			self.close()
 			return None
 		except KeyboardInterrupt:
 			log(INFO, self.name()+".recv: received KeyboardInterrupt")
+			self.close()
 			return None
 		except socket.error:
 			log(WARNING, self.name()+".recv: received a connection error")
+			self.close()
 			return None
 		except Exception as err:
 			log(FATAL, self.name()+".recv: an unknown error occured")
+			self.close()
 			eprint(self.name()+".recv:", err)
 		else:
 			if not res:
 				log(WARNING, self.name()+".recv: Connection terminated")
+				self.close()
 				return None
 			return res
 
@@ -172,7 +197,7 @@ class ServerSocket(ProtoSocket):
 	#	- None	-> Interrupted (the server should stop)
 	#	- False	-> Reached timeout or got an other Exception (the server should keep running)
 	#	- True	-> A new connection was accepted
-	def accept(self, timeout=5):
+	def accept(self, timeout=5.0):
 		try:
 			self.listen_socket.settimeout(timeout)
 			self.socket, self.addr = self.listen_socket.accept()
@@ -200,9 +225,10 @@ class ClientSocket(ProtoSocket):
 		if self.socket is not None:
 			self.socket.close()
 
-	def connect(self, ip, port):
-		self.ip = ip
-		self.port = port
+	# ip and port are optional but need to be given at least for the first connection
+	def connect(self, ip=None, port=None):
+		self.ip = self.ip if ip is None else ip
+		self.port = self.port if port is None else port
 		try:
 			self.socket.connect((self.ip, self.port))
 		except:
@@ -211,18 +237,42 @@ class ClientSocket(ProtoSocket):
 		else:
 			return True
 
+	# Run a complete "command (+subcommands) - data - answer" exchange on a TCLIENT+HCLIENT socket
+	def exchange(self, commands=[], data=None, timeout=30, retry=1):
+		trials = 0
+		reconnect = False
+		while trials <= retry:
+			trials += 1
+			if reconnect:
+				self.close()
+				if not self.connect(): return None
+				reconnect = False
+			for cmd in commands:
+				if self.send_cmd(cmd) == 0:
+					reconnect = True
+					break
+			else:
+				if data is not None and self.send_obj(data) <= 0:
+					reconnect = True
+					continue
+				res = self.get_answer(timeout=timeout)
+				if res is None:
+					reconnect = True
+		return res
+
 	# Overrides the ProtoSocket send_cmd method
 	# Tries to reconnect to the server if we fail to send the command
 	# By default, we only try to reconnect once.
-	# Set retry to 0 if you do not want to retry, n if you want to retry n times 
-	def send_cmd(self, cmd, retry=1):
-		cpt = 0
-		while cpt<=retry:
-			ret = ProtoSocket.send_cmd(self, cmd)
-			if ret > 0:
-				return ret
-			elif cpt<retry:
-				log(INFO, "trying to reconnect to the server")
-				self.connect(self.ip, self.port)
-			cpt += 1
-		return 0
+	# Set retry to 0 if you do not want to retry, n if you want to retry n times
+	# Outdated because send returns when data is put in buffer, not when it is acknowledged 
+	# def send_cmd(self, cmd, retry=1):
+	# 	cpt = 0
+	# 	while cpt<=retry:
+	# 		ret = ProtoSocket.send_cmd(self, cmd)
+	# 		if ret > 0:
+	# 			return ret
+	# 		elif cpt<retry:
+	# 			log(INFO, "trying to reconnect to the server")
+	# 			self.connect()
+	# 		cpt += 1
+	# 	return 0
