@@ -217,7 +217,8 @@ class ServerSocket(ProtoSocket):
 
 class ClientSocket(ProtoSocket):
 	def __init__(self, socktype=socket.AF_INET):
-		self.socket = socket.socket(socktype, socket.SOCK_STREAM)
+		self.socktype = socktype
+		self.socket = None
 		self.ip = None
 		self.port = None
 
@@ -229,6 +230,7 @@ class ClientSocket(ProtoSocket):
 	def connect(self, ip=None, port=None):
 		self.ip = self.ip if ip is None else ip
 		self.port = self.port if port is None else port
+		self.socket = socket.socket(self.socktype, socket.SOCK_STREAM)
 		try:
 			self.socket.connect((self.ip, self.port))
 		except:
