@@ -119,6 +119,7 @@ class ProtoSocket:
 
 	# Receive data on socket, with a timeout
 	def recv(self, size=2048, timeout=30):
+		if not self.connected(): return None
 		self.socket.settimeout(timeout)
 		try:
 			res = self.socket.recv(size)
