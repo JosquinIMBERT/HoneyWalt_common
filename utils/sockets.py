@@ -172,11 +172,13 @@ def to_nb_bytes(integer, nb):
 
 
 class ServerSocket(ProtoSocket):
-	def __init__(self, port):
-		self.listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	def __init__(self, port, addr="", socktype=socket.AF_INET):
+		self.socktype = socktype
+		self.listen_socket = socket.socket(self.socktype, socket.SOCK_STREAM)
 		self.socket = None
-		self.addr = None
+		self.remaddr = None # Remote Addr
 		self.port = port
+		self.addr = addr
 
 	def __del__(self):
 		if self.socket is not None:
@@ -186,9 +188,9 @@ class ServerSocket(ProtoSocket):
 
 	def bind(self):
 		try:
-			self.listen_socket.bind(("", self.port))
+			self.listen_socket.bind((self.addr, self.port))
 		except:
-			log(ERROR, self.name()+".connect: failed to bind socket")
+			log(ERROR, self.name()+".bind: failed to bind socket")
 			return False
 		self.listen_socket.listen(1)
 		return True
@@ -201,7 +203,7 @@ class ServerSocket(ProtoSocket):
 	def accept(self, timeout=5.0):
 		try:
 			self.listen_socket.settimeout(timeout)
-			self.socket, self.addr = self.listen_socket.accept()
+			self.socket, self.remaddr = self.listen_socket.accept()
 		except KeyboardInterrupt:
 			log(DEBUG, self.name()+".accept: received KeyboardInterrupt")
 			return None
