@@ -47,7 +47,7 @@ class ProtoSocket:
 	# Send an object (object size on OBJECT_SIZE bytes followed by the object on the corresponding amount of bytes)
 	def send_obj(self, obj):
 		if not self.connected():
-			log(ERROR, self.name()+".send_obj: Failed to send an object. The socket is not connected")
+			log(ERROR, self.get_name()+".send_obj: Failed to send an object. The socket is not connected")
 			return 0
 		else:
 			return self.send(serialize(obj))
@@ -64,7 +64,7 @@ class ProtoSocket:
 	# Send a command (should be on COMMAND_SIZE bytes)
 	def send_cmd(self, cmd):
 		if not self.connected():
-			log(ERROR, self.name()+".send_cmd: Failed to send a command. The socket is not connected")
+			log(ERROR, self.get_name()+".send_cmd: Failed to send a command. The socket is not connected")
 			return 0
 		else:
 			return self.send(cmd_to_bytes(cmd))
@@ -72,7 +72,7 @@ class ProtoSocket:
 	# Receive a command (should be on COMMAND_SIZE bytes)
 	def recv_cmd(self):
 		if not self.connected():
-			log(ERROR, self.name()+".recv_cmd: Failed to send a command. The socket is not connected")
+			log(ERROR, self.get_name()+".recv_cmd: Failed to send a command. The socket is not connected")
 			return None
 		else:
 			bytes_cmd = self.recv(size=COMMAND_SIZE)
@@ -92,7 +92,7 @@ class ProtoSocket:
 		if not res: # CONNECTION TERMINATED OR KEYBOARD INTERRUPTION
 			return None
 		elif not isinstance(res, dict) or not "success" in res: # INVALID ANSWER 
-			log(ERROR, self.name()+".get_answer: received an invalid answer")
+			log(ERROR, self.get_name()+".get_answer: received an invalid answer")
 			return None
 		else: # VALID ANSWER
 			# Logging warnings, errors, and fatal errors
@@ -128,24 +128,24 @@ class ProtoSocket:
 		try:
 			res = self.socket.recv(size)
 		except socket.timeout:
-			log(WARNING, self.name()+".recv: reached timeout")
+			log(WARNING, self.get_name()+".recv: reached timeout")
 			self.close()
 			return None
 		except KeyboardInterrupt:
-			log(INFO, self.name()+".recv: received KeyboardInterrupt")
+			log(INFO, self.get_name()+".recv: received KeyboardInterrupt")
 			self.close()
 			return None
 		except socket.error:
-			log(WARNING, self.name()+".recv: received a connection error")
+			log(WARNING, self.get_name()+".recv: received a connection error")
 			self.close()
 			return None
 		except Exception as err:
-			log(FATAL, self.name()+".recv: an unknown error occured")
+			log(FATAL, self.get_name()+".recv: an unknown error occured")
 			self.close()
-			eprint(self.name()+".recv:", err)
+			eprint(self.get_name()+".recv:", err)
 		else:
 			if not res:
-				log(WARNING, self.name()+".recv: Connection terminated")
+				log(WARNING, self.get_name()+".recv: Connection terminated")
 				self.close()
 				return None
 			return res
@@ -194,7 +194,7 @@ class ServerSocket(ProtoSocket):
 		try:
 			self.listen_socket.bind((self.addr, self.port))
 		except:
-			log(DEBUG, self.name()+".bind: failed to bind socket")
+			log(DEBUG, self.get_name()+".bind: failed to bind socket")
 			return False
 		self.listen_socket.listen(1)
 		return True
@@ -209,16 +209,16 @@ class ServerSocket(ProtoSocket):
 			self.listen_socket.settimeout(timeout)
 			self.socket, self.remaddr = self.listen_socket.accept()
 		except KeyboardInterrupt:
-			log(DEBUG, self.name()+".accept: received KeyboardInterrupt")
+			log(DEBUG, self.get_name()+".accept: received KeyboardInterrupt")
 			return None
 		except socket.timeout:
 			return False
 		except Exception as err:
-			log(ERROR, self.name()+".accept: an error occured when waiting for a connection")
-			log(ERROR, self.name()+".accept:", err)
+			log(ERROR, self.get_name()+".accept: an error occured when waiting for a connection")
+			log(ERROR, self.get_name()+".accept:", err)
 			return False
 		else:
-			log(INFO, self.name()+".accept: accepted a new client")
+			log(INFO, self.get_name()+".accept: accepted a new client")
 			return True
 
 
@@ -241,7 +241,7 @@ class ClientSocket(ProtoSocket):
 		try:
 			self.socket.connect((self.ip, self.port))
 		except:
-			log(DEBUG, self.name()+".connect: failed to connect")
+			log(DEBUG, self.get_name()+".connect: failed to connect")
 			return False
 		else:
 			return True
