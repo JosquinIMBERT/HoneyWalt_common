@@ -190,7 +190,7 @@ class ServerSocket(ProtoSocket):
 		try:
 			self.listen_socket.bind((self.addr, self.port))
 		except:
-			log(ERROR, self.name()+".bind: failed to bind socket")
+			log(DEBUG, self.name()+".bind: failed to bind socket")
 			return False
 		self.listen_socket.listen(1)
 		return True
@@ -237,7 +237,7 @@ class ClientSocket(ProtoSocket):
 		try:
 			self.socket.connect((self.ip, self.port))
 		except:
-			log(ERROR, self.name()+".connect: failed to connect")
+			log(DEBUG, self.name()+".connect: failed to connect")
 			return False
 		else:
 			return True
