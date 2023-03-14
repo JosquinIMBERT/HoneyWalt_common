@@ -28,10 +28,14 @@ COMMAND_SIZE = 1 # Commands encoded on 1 bytes
 class ProtoSocket:
 	def __init__(self):
 		self.socket = None
+		self.name = None
 
 	# Get the class name to generate logs (this class is abstract for Door and VM sockets)
 	def name(self):
-		return self.__class__.__name__
+		return self.__class__.__name__ if self.name is None else self.name
+
+	def set_name(self, name):
+		self.name = name
 
 	def connected(self):
 		return self.socket is not None
