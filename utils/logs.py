@@ -57,7 +57,7 @@ def set_log_level(log_level):
 		LOG_LEVEL = INFO
 	elif log_level=="DEBUG":
 		LOG_LEVEL = DEBUG
-	elif log_level=="CMD":
+	elif log_level=="CMD" or log_level=="COMMAND":
 		LOG_LEVEL = COMMAND
 	else:
 		print("common.utils.logs.set_log_level: invalid log level")
