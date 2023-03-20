@@ -177,6 +177,7 @@ def to_nb_bytes(integer, nb):
 
 class ServerSocket(ProtoSocket):
 	def __init__(self, port, addr="", socktype=socket.AF_INET):
+		ProtoSocket.__init__(self)
 		self.socktype = socktype
 		self.listen_socket = socket.socket(self.socktype, socket.SOCK_STREAM)
 		self.socket = None
@@ -224,6 +225,7 @@ class ServerSocket(ProtoSocket):
 
 class ClientSocket(ProtoSocket):
 	def __init__(self, socktype=socket.AF_INET):
+		ProtoSocket.__init__(self)
 		self.socktype = socktype
 		self.socket = None
 		self.ip = None
