@@ -145,7 +145,7 @@ class ProtoSocket:
 			eprint(self.get_name()+".recv:", err)
 		else:
 			if not res:
-				log(WARNING, self.get_name()+".recv: Connection terminated")
+				log(INFO, self.get_name()+".recv: Connection terminated")
 				self.close()
 				return None
 			return res
@@ -176,14 +176,25 @@ def to_nb_bytes(integer, nb):
 
 
 class ServerSocket(ProtoSocket):
-	def __init__(self, port, addr="", socktype=socket.AF_INET):
+	def __init__(self, port, addr="", socktype=socket.AF_INET, reusable=False):
 		ProtoSocket.__init__(self)
 		self.socktype = socktype
+		self.reusable = reusable
 		self.listen_socket = socket.socket(self.socktype, socket.SOCK_STREAM)
+		if self.reusable:
+			self.listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.socket = None
 		self.remaddr = None # Remote Addr
 		self.port = port
 		self.addr = addr
+
+	def reinit(self):
+		if not self.reusable: return None
+		if self.socket is not None: self.socket.close()
+		if self.listen_socket is not None: self.listen_socket.close()
+		self.listen_socket = socket.socket(self.socktype, socket.SOCK_STREAM)
+		self.listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.socket = None
 
 	def __del__(self):
 		if self.socket is not None:
