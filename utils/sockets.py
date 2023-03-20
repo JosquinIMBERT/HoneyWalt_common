@@ -88,7 +88,7 @@ class ProtoSocket:
 	#	- Answer (any kind of object) if it is a success and their is an answer data
 	#	- False if it did not succeed
 	def get_answer(self, timeout=30):
-		res = self.recv_obj(timeout=30)
+		res = self.recv_obj(timeout=timeout)
 		if not res: # CONNECTION TERMINATED OR KEYBOARD INTERRUPTION
 			return None
 		elif not isinstance(res, dict) or not "success" in res: # INVALID ANSWER 
