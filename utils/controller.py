@@ -13,10 +13,17 @@ class Controller:
 	def set_name(self, name):
 		self.name = name
 
+	def reconnect(self):
+		return False
+
 	# Func result is a dictionary with the following keys:
 	#	"success" (mandatory): boolean that indicates whether the function succeeded or not
 	#	"answer" (optional): answer object in case of success
 	#	INFO/ERROR/WARNING/FATAL (optional): message for the client
 	def exec(self, func, *args, **kwargs):
 		res = func(*args, **kwargs)
-		self.socket.send_obj(res)
+		if not self.socket.send_obj(res):
+			if self.reconnect():
+				if self.socket.send_obj(res):
+					return True
+		return False
