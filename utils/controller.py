@@ -22,8 +22,8 @@ class Controller:
 	#	INFO/ERROR/WARNING/FATAL (optional): message for the client
 	def exec(self, func, *args, **kwargs):
 		res = func(*args, **kwargs)
-		if not self.socket.send_obj(res):
+		if self.socket.send_obj(res) <= 0:
 			if self.reconnect():
-				if self.socket.send_obj(res):
+				if self.socket.send_obj(res) > 0:
 					return True
 		return False
