@@ -30,19 +30,19 @@ def log(level, *args, **kwargs):
 	if level <= LOG_LEVEL:
 		if level == FATAL:
 			#trace = get_trace(nb_off=3)+":"
-			print("[FATAL]", *args, file=sys.stderr, **kwargs)
+			print("[FATAL]", *args, file=sys.stderr, flush=True, **kwargs)
 		elif level == ERROR:
 			#trace = get_trace(nb_off=3)+":"
-			print("[ERROR]", *args, file=sys.stderr, **kwargs)
+			print("[ERROR]", *args, file=sys.stderr, flush=True, **kwargs)
 		elif level == WARNING:
 			#trace = get_trace()+":"
-			print("[WARNING]", *args, **kwargs)
+			print("[WARNING]", *args, flush=True, **kwargs)
 		elif level == INFO:
-			print("[INFO]", *args, **kwargs)
+			print("[INFO]", *args, flush=True, **kwargs)
 		elif level == DEBUG:
-			print("[DEBUG]", *args, **kwargs)
+			print("[DEBUG]", *args, flush=True, **kwargs)
 		elif level == COMMAND:
-			print("[COMMAND]", *args, **kwargs)
+			print("[COMMAND]", *args, flush=True, **kwargs)
 
 def set_log_level(log_level):
 	global LOG_LEVEL
