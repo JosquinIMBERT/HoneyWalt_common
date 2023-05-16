@@ -44,6 +44,22 @@ def log(level, *args, **kwargs):
 		elif level == COMMAND:
 			print("[COMMAND]", *args, flush=True, **kwargs)
 
+def log_remote(level, out, err, *args, **kwargs):
+	if level <= LOG_LEVEL:
+		if level == FATAL:
+			print("[FATAL]", *args, file=err, flush=True, **kwargs)
+		elif level == ERROR:
+			print("[ERROR]", *args, file=err, flush=True, **kwargs)
+		elif level == WARNING:
+			#trace = get_trace()+":"
+			print("[WARNING]", *args, file=out, flush=True, **kwargs)
+		elif level == INFO:
+			print("[INFO]", *args, file=out, flush=True, **kwargs)
+		elif level == DEBUG:
+			print("[DEBUG]", *args, file=out, flush=True, **kwargs)
+		elif level == COMMAND:
+			print("[COMMAND]", *args, file=out, flush=True, **kwargs)
+
 def set_log_level(log_level):
 	global LOG_LEVEL
 
