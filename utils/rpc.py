@@ -55,3 +55,13 @@ class AbstractService(rpyc.Service):
 
 	def call(self, func, *args, **kwargs):
 		return json.dumps(func(self, *args, **kwargs))
+
+class FakeClient():
+	def __init__(self):
+		self.remote_ip = "127.0.0.1"
+
+	def __del__(self):
+		del self.remote_ip
+
+	def log(self, level, *args, **kwargs):
+		log(level, *args, **kwargs)
