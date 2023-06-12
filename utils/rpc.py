@@ -57,11 +57,12 @@ class AbstractService(rpyc.Service):
 		return json.dumps(func(self, *args, **kwargs))
 
 class FakeClient():
-	def __init__(self):
+	def __init__(self, ignore_logs=False):
 		self.remote_ip = "127.0.0.1"
+		self.ignore_logs = ignore_logs
 
 	def __del__(self):
 		del self.remote_ip
 
 	def log(self, level, *args, **kwargs):
-		log(level, *args, **kwargs)
+		if not self.ignore_logs: log(level, *args, **kwargs)
