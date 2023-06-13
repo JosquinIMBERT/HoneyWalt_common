@@ -254,7 +254,7 @@ class ClientSocket(ProtoSocket):
 		try:
 			self.socket.connect((self.ip, self.port))
 		except:
-			log(DEBUG, self.get_name()+".connect: failed to connect")
+			#log(DEBUG, self.get_name()+".connect: failed to connect")
 			return False
 		else:
 			return True
