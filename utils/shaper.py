@@ -53,12 +53,12 @@ class Shaper:
 		if self.wake_sock_client is not None:
 			self.wake_sock_client.close()
 
-	def start(self):
+	def start(self, client=None):
 		self.thread = threading.Thread(target=self.run)
 		self.lock = threading.Lock()
 		self.thread.start()
 
-	def stop(self):
+	def stop(self, client=None):
 		self.keep_running = False
 		self.wake()
 		self.thread.join()
