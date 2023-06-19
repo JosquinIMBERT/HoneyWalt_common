@@ -118,9 +118,16 @@ class Shaper:
 	def handle_read(self, s):
 		data, (self.udp_host, self.udp_port) = s.recvfrom(1024)
 		if data and len(data)>0:
-			self.peer.forward(data)
+			try:
+				self.peer.forward(data)
+			except Exception as err:
+				self.log(ERROR, err)
+				return False
+			else:
+				return True
 		else:
 			self.log(DEBUG, "Received empty packet")
+			return False
 
 	def handle_write(self, s):
 		if self.udp_host is None or self.udp_port is None:
