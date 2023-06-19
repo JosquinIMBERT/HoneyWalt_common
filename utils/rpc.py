@@ -53,7 +53,7 @@ class AbstractService(rpyc.Service):
 		if self.remote_stdout is not None and self.remote_stderr is not None:
 			log_remote(level, self.loglevel, self.remote_stdout, self.remote_stderr, *args, **kwargs)
 
-	def call(self, func, *args, **kwargs, ignore_client=False):
+	def call(self, func, *args, ignore_client=False, **kwargs):
 		if ignore_client:
 			return json.dumps(func(*args, **kwargs))
 		else:
