@@ -53,12 +53,12 @@ class Shaper:
 		if self.wake_sock_client is not None:
 			self.wake_sock_client.close()
 
-	def start(self, client=None):
+	def start(self):
 		self.thread = threading.Thread(target=self.run)
 		self.lock = threading.Lock()
 		self.thread.start()
 
-	def stop(self, client=None):
+	def stop(self):
 		self.keep_running = False
 		self.wake()
 		self.thread.join()
@@ -69,10 +69,10 @@ class Shaper:
 	def set_peer(self, peer):
 		self.peer = peer
 
-	def forward(self, msg):
+	def forward(self, packet):
 		# Preparing to send
 		self.lock.acquire()
-		self.sending_queue.put(msg)
+		self.sending_queue.put(packet)
 		self.wsocks.add(self.sock)
 		self.lock.release()
 
