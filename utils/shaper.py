@@ -41,8 +41,10 @@ class Shaper:
 		self.wake_addr = ("127.0.0.1", 0) # Port will be chosen randomly
 		self.wake_sock_listen = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.wake_sock_listen.bind(self.wake_addr)
+		self.wake_sock_listen.setblocking(0)
 		self.wake_addr = ("127.0.0.1", self.wake_sock_listen.getsockname()[1]) # Getting port number
 		self.wake_sock_client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.wake_sock_client.setblocking(0)
 		self.wake_msg = b"1"
 
 	def __del__(self):
@@ -95,12 +97,13 @@ class Shaper:
 
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		self.prepare()
+		self.sock.setblocking(0)
 
 		self.rsocks = set([self.sock, self.wake_sock_listen])
 		self.wsocks = set()
 
 		while self.keep_running:
-			self.log(DEBUG, "run: selecting with len(rsocks)="+str(len(self.rsocks))+"and len(wsocks)="+str(len(self.wsocks)))
+			self.log(DEBUG, "run: selecting with len(rsocks)="+str(len(self.rsocks))+" and len(wsocks)="+str(len(self.wsocks)))
 			r, w, _ = select.select(list(self.rsocks), list(self.wsocks), [], self.timeout)
 
 			if len(r)<=0 and len(w)<=0:
