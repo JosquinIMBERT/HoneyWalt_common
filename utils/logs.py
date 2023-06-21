@@ -3,8 +3,8 @@ import os, sys, traceback
 
 global LOG_LEVEL, COMMAND, DEBUG, INFO, WARNING, ERROR, FATAL
 LOG_LEVEL = 1
-COMMAND = 5
-DEBUG = 4
+DEBUG = 5
+COMMAND = 4
 INFO = 3
 WARNING = 2
 ERROR = 1

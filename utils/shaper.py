@@ -9,7 +9,7 @@ import time
 from common.utils.logs import *
 
 class Shaper:
-	def __init__(self, name="Shaper", timeout=5):
+	def __init__(self, name="Shaper", timeout=60):
 		self.keep_running = False
 		self.thread = None
 		self.lock = None
@@ -70,6 +70,8 @@ class Shaper:
 		self.peer = peer
 
 	def forward(self, packet):
+		self.log(DEBUG, "forward: packet:", str(packet))
+
 		# Preparing to send
 		self.lock.acquire()
 		self.sending_queue.put(packet)
@@ -77,7 +79,9 @@ class Shaper:
 		self.lock.release()
 
 		# Forcing select to unblock before the timeout
+		self.log(DEBUG, "forward: waking remote thread")
 		self.wake()
+		self.log(DEBUG, "forward: woke remote thread")
 
 	def log(self, lev, *args, **kwargs):
 		log(lev, "["+self.name+"]", *args, **kwargs)
@@ -96,16 +100,17 @@ class Shaper:
 		self.wsocks = set()
 
 		while self.keep_running:
+			self.log(DEBUG, "run: selecting with len(rsocks)="+str(len(self.rsocks))+"and len(wsocks)="+str(len(self.wsocks)))
 			r, w, _ = select.select(list(self.rsocks), list(self.wsocks), [], self.timeout)
 
 			if len(r)<=0 and len(w)<=0:
-				self.log(DEBUG, "Data Timeout")
+				self.log(DEBUG, "run: data Timeout")
 				continue
 
 			# Browing Read Sockets
 			for s in r:
 				if s == self.wake_sock_listen:
-					self.log(DEBUG, "Breaking select")
+					self.log(DEBUG, "run: got awaken")
 					self.wake_sock_listen.recvfrom(1024)
 					continue
 				else:
@@ -117,6 +122,7 @@ class Shaper:
 
 	def handle_read(self, s):
 		data, (self.udp_host, self.udp_port) = s.recvfrom(1024)
+		self.log(DEBUG, "handle_read: received from "+str(self.udp_host)+":"+str(self.udp_port)+", data="+str(data))
 		if data and len(data)>0:
 			try:
 				self.peer.forward(data)
@@ -124,9 +130,10 @@ class Shaper:
 				self.log(ERROR, err)
 				return False
 			else:
+				self.log("handle_read: successfully forwarded packet")
 				return True
 		else:
-			self.log(DEBUG, "Received empty packet")
+			self.log(DEBUG, "handle_read: received empty packet")
 			return False
 
 	def handle_write(self, s):
@@ -137,7 +144,11 @@ class Shaper:
 			data = self.sending_queue.get()
 			self.lock.release()
 
+			self.log(DEBUG, "handle_write: sending to "+str(self.udp_host)+":"+str(self.udp_port)+", data="+str(data))
+
 			sent = s.sendto(data, (self.udp_host, self.udp_port))
+
+			self.log(DEBUG, "handle_write: sent "+str(sent)+" bytes out of "+str(len(data)))
 
 			self.lock.acquire()
 			if sent<=0:
