@@ -61,7 +61,7 @@ class Shaper:
 	def stop(self):
 		self.keep_running = False
 		self.wake()
-		self.thread.join()
+		if self.thread is not None: self.thread.join()
 
 	def wake(self):
 		self.wake_sock_client.sendto(self.wake_msg, self.wake_addr)
