@@ -86,7 +86,7 @@ class Shaper:
 		self.log(DEBUG, "forward: woke remote thread")
 
 	def log(self, lev, *args, **kwargs):
-		log(lev, "["+self.name+"]", *args, **kwargs)
+		log(lev, "["+self.name+"-"+str(threading.current_thread().getName())+"]", *args, **kwargs)
 
 	# Abstract
 	def prepare(self):
