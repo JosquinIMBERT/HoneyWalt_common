@@ -130,7 +130,7 @@ class Shaper:
 				self.log(ERROR, err)
 				return False
 			else:
-				self.log("handle_read: successfully forwarded packet")
+				self.log(DEBUG, "handle_read: successfully forwarded packet")
 				return True
 		else:
 			self.log(DEBUG, "handle_read: received empty packet")
