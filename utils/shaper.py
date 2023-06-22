@@ -2,7 +2,7 @@
 import threading
 import socket
 import select
-import queue
+from collections import deque
 import time
 
 # Internal
@@ -31,7 +31,7 @@ class Shaper:
 		self.peer = None
 
 		# Messages to forward
-		self.sending_queue = queue.Queue()
+		self.sending_queue = deque()
 
 		# Selection lists
 		self.rsocks = set()
@@ -76,7 +76,7 @@ class Shaper:
 
 		# Preparing to send
 		self.lock.acquire()
-		self.sending_queue.put(packet)
+		self.sending_queue.append(packet)
 		self.wsocks.add(self.sock)
 		self.lock.release()
 
@@ -144,7 +144,7 @@ class Shaper:
 			self.log(DEBUG, "UDP peer is not registered")
 		else:
 			self.lock.acquire()
-			data = self.sending_queue.get()
+			data = self.sending_queue.popleft()
 			self.lock.release()
 
 			self.log(DEBUG, "handle_write: sending to "+str(self.udp_host)+":"+str(self.udp_port)+", data="+str(data))
@@ -156,10 +156,11 @@ class Shaper:
 			self.lock.acquire()
 			if sent<=0:
 				self.log(DEBUG, "Failed to send data, reinserting")
-				self.sending_queue.queue.insert(0, data)
+				self.sending_queue.appendleft(data)
 			elif sent<len(data):
-				self.sending_queue.queue.insert(0, data[sent:])
+				self.sending_queue.appendleft(data[sent:])
 			else:
-				if self.sending_queue.empty():
+				if not self.sending_queue:
+					# sendig_queue is empty
 					self.wsocks.remove(s)
 			self.lock.release()
