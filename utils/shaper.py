@@ -8,12 +8,19 @@ import time
 # Internal
 from common.utils.logs import *
 
+SEND_BUF_SIZE = 65535
+RECV_BUF_SIZE = 2147483647
+
 class Shaper:
-	def __init__(self, name="Shaper", timeout=60):
+	def __init__(self, name="Shaper", timeout=60, status_timeout=20):
 		self.keep_running = False
 		self.thread = None
 		self.lock = None
 		self.name = name
+
+		# Status
+		self.status_timer = None
+		self.status_timeout = status_timeout
 
 		# Socket
 		self.sock = None
@@ -47,6 +54,10 @@ class Shaper:
 		self.wake_sock_client.setblocking(0)
 		self.wake_msg = b"1"
 
+		# Counters
+		self.total_sent = 0
+		self.total_recv = 0
+
 	def __del__(self):
 		if self.sock is not None:
 			self.sock.close()
@@ -55,15 +66,20 @@ class Shaper:
 		if self.wake_sock_client is not None:
 			self.wake_sock_client.close()
 
-	def start(self):
-		self.thread = threading.Thread(target=self.run)
+	def start(self, show_status=True):
 		self.lock = threading.Lock()
+
+		self.thread = threading.Thread(target=self.run)
 		self.thread.start()
+
+		if show_status:
+			self.start_status_timer()
 
 	def stop(self):
 		self.keep_running = False
 		self.wake()
 		if self.thread is not None: self.thread.join()
+		if self.status_timer is not None: self.status_timer.cancel()
 
 	def wake(self):
 		self.wake_sock_client.sendto(self.wake_msg, self.wake_addr)
@@ -114,7 +130,7 @@ class Shaper:
 			for s in r:
 				if s == self.wake_sock_listen:
 					self.log(DEBUG, "run: got awaken")
-					self.wake_sock_listen.recvfrom(1024)
+					self.wake_sock_listen.recvfrom(RECV_BUF_SIZE)
 					continue
 				else:
 					self.handle_read(s)
@@ -124,9 +140,10 @@ class Shaper:
 				self.handle_write(s)
 
 	def handle_read(self, s):
-		data, (self.udp_host, self.udp_port) = s.recvfrom(1024)
+		data, (self.udp_host, self.udp_port) = s.recvfrom(RECV_BUF_SIZE)
 		self.log(DEBUG, "handle_read: received from "+str(self.udp_host)+":"+str(self.udp_port)+", data="+str(data))
 		if data and len(data)>0:
+			self.total_recv += len(data)
 			try:
 				self.peer.forward(data)
 			except Exception as err:
@@ -150,6 +167,7 @@ class Shaper:
 			self.log(DEBUG, "handle_write: sending to "+str(self.udp_host)+":"+str(self.udp_port)+", data="+str(data))
 
 			sent = s.sendto(data, (self.udp_host, self.udp_port))
+			self.total_sent += sent
 
 			self.log(DEBUG, "handle_write: sent "+str(sent)+" bytes out of "+str(len(data)))
 
@@ -164,3 +182,15 @@ class Shaper:
 					# sendig_queue is empty
 					self.wsocks.remove(s)
 			self.lock.release()
+
+	def start_status_timer(self):
+		self.status_timer = threading.Timer(self.status_timeout, self.status_routine)
+		self.status_timer.start()
+
+	def status_routine(self):
+		self.show_total()
+		if self.keep_running:
+			self.start_status_timer()
+
+	def show_total(self):
+		self.log(INFO, "Shaper: sent: "+str(self.total_sent)+" bytes, received: "+str(self.total_recv)+" bytes")
