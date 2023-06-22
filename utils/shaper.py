@@ -9,7 +9,7 @@ import time
 from common.utils.logs import *
 
 SEND_BUF_SIZE = 65535
-RECV_BUF_SIZE = 2147483647
+RECV_BUF_SIZE = 65535
 
 class Shaper:
 	def __init__(self, name="Shaper", timeout=60, status_timeout=20):
