@@ -1,6 +1,6 @@
 # External
 import os
-from os.path import abspath, dirname, exists, join
+from os.path import abspath, dirname, exists, join, isfile
 
 # Get the path to the root of the application
 def get_root_path():
@@ -18,3 +18,8 @@ def delete(directory, suffix=""):
 		file = os.path.join(directory,name)
 		if file.endswith(suffix):
 			os.remove(file)
+
+# delete a file from its name
+def delete_file(file):
+	if isfile(file):
+		os.remove(file)
