@@ -13,12 +13,13 @@ class IPService(rpyc.Service):
 		return self.ip
 
 class AbstractService(rpyc.Service):
-	def __init__(self):
+	def __init__(self, ignore_client=True):
 		self.remote_stdout = None
 		self.remote_stderr = None
 		self.loglevel = INFO
 		self.conn = None
 		self.remote_ip = None
+		self.ignore_client = ignore_client
 
 	def __del__(self):
 		del self.remote_stdout
@@ -36,11 +37,9 @@ class AbstractService(rpyc.Service):
 		log(INFO, self.__class__.__name__+": End of connection with", self.remote_ip)
 
 	def exposed_set_stdout(self, stdout):
-		# TODO: verify what the client is giving as argument
 		self.remote_stdout = stdout
 
 	def exposed_set_stderr(self, stderr):
-		# TODO: verify what the client is giving as argument
 		self.remote_stderr = stderr
 
 	def exposed_set_log_level(self, loglevel):
@@ -53,8 +52,8 @@ class AbstractService(rpyc.Service):
 		if self.remote_stdout is not None and self.remote_stderr is not None:
 			log_remote(level, self.loglevel, self.remote_stdout, self.remote_stderr, *args, **kwargs)
 
-	def call(self, func, *args, ignore_client=False, **kwargs):
-		if ignore_client:
+	def call(self, func, *args, **kwargs):
+		if self.ignore_client:
 			return json.dumps(func(*args, **kwargs))
 		else:
 			return json.dumps(func(self, *args, **kwargs))
