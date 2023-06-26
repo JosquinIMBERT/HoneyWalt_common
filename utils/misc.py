@@ -7,8 +7,13 @@ from common.utils.files import *
 # Find an object in the "objects" list with field "field" equal "target"
 def find(objects, target, field):
 	for obj in objects:
-		if obj[field] == target:
-			return obj
+		curr_obj = obj
+		if isinstance(field, list):
+			for f in field: curr_obj = curr_obj[f]
+			if curr_obj == target: return obj
+		else:
+			if obj[field] == target:
+				return obj
 	return None
 
 # Find the id of an object in the "objects" list with field "field" equal "target"

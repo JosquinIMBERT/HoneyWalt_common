@@ -56,7 +56,7 @@ class AbstractService(rpyc.Service):
 		if self.ignore_client:
 			return json.dumps(func(*args, **kwargs))
 		else:
-			return json.dumps(func(self, *args, **kwargs))
+			return json.dumps(func(*args, **kwargs, client=self))
 
 class FakeClient():
 	def __init__(self, ignore_logs=False):
