@@ -53,10 +53,12 @@ class AbstractService(rpyc.Service):
 			log_remote(level, self.loglevel, self.remote_stdout, self.remote_stderr, *args, **kwargs)
 
 	def call(self, func, *args, **kwargs):
+		res = None
 		if self.ignore_client:
-			return json.dumps(func(*args, **kwargs))
+			res = func(*args, **kwargs)
 		else:
-			return json.dumps(func(*args, **kwargs, client=self))
+			res = func(*args, **kwargs, client=self)
+		return json.dumps(res)
 
 class FakeClient():
 	def __init__(self, ignore_logs=False):
