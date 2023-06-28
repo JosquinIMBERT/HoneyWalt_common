@@ -78,3 +78,7 @@ def set_log_level(log_level):
 	else:
 		print("common.utils.logs.set_log_level: invalid log level")
 		sys.exit(1)
+
+def get_log_level():
+	global LOG_LEVEL
+	return LOG_LEVEL
