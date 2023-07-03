@@ -12,7 +12,7 @@ SEND_BUF_SIZE = 65535
 RECV_BUF_SIZE = 65535
 
 class Shaper:
-	def __init__(self, name="Shaper", timeout=60, status_timeout=20):
+	def __init__(self, name="Shaper", timeout=60, status_timeout=21600):
 		self.keep_running = False
 		self.thread = None
 		self.lock = None
