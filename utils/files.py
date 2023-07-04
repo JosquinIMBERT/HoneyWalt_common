@@ -5,7 +5,7 @@ from os.path import abspath, dirname, exists, join, isfile
 # Get the path to the root of the application
 def get_root_path():
 	path = abspath(dirname(__file__))
-	return join(path.split("/")[:-3])
+	return join(*path.split("/")[:-3])
 
 # get the path to a file in the application
 def to_root_path(path):
